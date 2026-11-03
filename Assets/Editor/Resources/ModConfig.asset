@@ -14,9 +14,10 @@ MonoBehaviour:
   id: completionMarks
   title: Completion Marks
   author: ItsOlafDude
-  description: "Completion Marks\nBy ItsOlafDude\n\n\"...Isaac? What happened to you?\"
-    \n\nUse the pickups Isaac has collected to check off the correct completion marks.
-    \ \n\nManual will soon be available on the repo. "
-  version: 1.0
+  description: "Completion Marks\r\nBy ItsOlafDude\r\n\r\n\"...Isaac? What happened
+    to you?\"\r\n\r\nUse the pickups Isaac has collected to check off the correct
+    completion marks.\r\n\r\nNOTE: This module contains images of cartoon gore/violence/adult
+    themes.\r\n\r\nModule ID: completionMarks\r\n\r\nManual available at: https://ktane.timwi.de/HTML/Completion%20Marks.html"
+  version: 1.3
   outputFolder: build
   previewImage: {fileID: 2800000, guid: 4cb8e64771dca5a49874cef5d7fa20b1, type: 3}

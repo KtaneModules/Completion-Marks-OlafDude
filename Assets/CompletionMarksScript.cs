@@ -101,46 +101,17 @@ public class CompletionMarksScript: MonoBehaviour {
 		moduleId = moduleIdCounter++;
 		scaleBut[0].OnInteract += delegate() {ScalePress(0); return false;}; 
 		scaleBut[1].OnInteract += delegate() {ScalePress(1); return false;}; 
-		marks[0].OnHighlight += delegate() {MarkHover(0);};
-		marks[0].OnHighlightEnded += delegate() {MarkHoverEnd(0);};
-		marks[1].OnHighlight += delegate() {MarkHover(1);};
-		marks[1].OnHighlightEnded += delegate() {MarkHoverEnd(1);};
-		marks[2].OnHighlight += delegate() {MarkHover(2);};
-		marks[2].OnHighlightEnded += delegate() {MarkHoverEnd(2);};
-		marks[3].OnHighlight += delegate() {MarkHover(3);};
-		marks[3].OnHighlightEnded += delegate() {MarkHoverEnd(3);};
-		marks[4].OnHighlight += delegate() {MarkHover(4);};
-		marks[4].OnHighlightEnded += delegate() {MarkHoverEnd(4);};
-		marks[5].OnHighlight += delegate() {MarkHover(5);};
-		marks[5].OnHighlightEnded += delegate() {MarkHoverEnd(5);};
-		marks[6].OnHighlight += delegate() {MarkHover(6);};
-		marks[6].OnHighlightEnded += delegate() {MarkHoverEnd(6);};
-		marks[7].OnHighlight += delegate() {MarkHover(7);};
-		marks[7].OnHighlightEnded += delegate() {MarkHoverEnd(7);};
-		marks[8].OnHighlight += delegate() {MarkHover(8);};
-		marks[8].OnHighlightEnded += delegate() {MarkHoverEnd(8);};
-		marks[9].OnHighlight += delegate() {MarkHover(9);};
-		marks[9].OnHighlightEnded += delegate() {MarkHoverEnd(9);};
-		marks[10].OnHighlight += delegate() {MarkHover(10);};
-		marks[10].OnHighlightEnded += delegate() {MarkHoverEnd(10);};
-		marks[11].OnHighlight += delegate() {MarkHover(11);};
-		marks[11].OnHighlightEnded += delegate() {MarkHoverEnd(11);};
-		marks[0].OnInteract += delegate () { MarkPress(0); return false; };
-		marks[1].OnInteract += delegate () { MarkPress(1); return false; };
-		marks[2].OnInteract += delegate () { MarkPress(2); return false; };
-		marks[3].OnInteract += delegate () { MarkPress(3); return false; };
-		marks[4].OnInteract += delegate () { MarkPress(4); return false; };
-		marks[5].OnInteract += delegate () { MarkPress(5); return false; };
-		marks[6].OnInteract += delegate () { MarkPress(6); return false; };
-		marks[7].OnInteract += delegate () { MarkPress(7); return false; };
-		marks[8].OnInteract += delegate () { MarkPress(8); return false; };
-		marks[9].OnInteract += delegate () { MarkPress(9); return false; };
-		marks[10].OnInteract += delegate () { MarkPress(10); return false; };
-		marks[11].OnInteract += delegate () { MarkPress(11); return false; };
+		for (int i = 0; i < marks.Length; i++){
+			int j = i; 
+			marks[i].OnHighlight += delegate() {MarkHover(j);};
+			marks[i].OnHighlightEnded += delegate() {MarkHoverEnd(j);};
+			marks[i].OnInteract += delegate() {MarkPress(j); return false;};
+		}
 
 		d4.OnInteract += delegate(){D4Press(); return false;}; 
 		change.OnInteract += delegate(){ChangePress(); return false;}; 
 
+		//data
 		lDat = new object[left.Length][]; 
 		rDat = new object[right.Length][]; 
 		bDat = new object[both.Length][]; 
@@ -405,6 +376,10 @@ public class CompletionMarksScript: MonoBehaviour {
 	}
 
 	void Start () {
+		hushCond = false; 
+		bobCond = false; 
+		rushCond = false; 
+
 		for (int i = 0; i < 12; i++){
 			if (i != 8){
 				marks[i].GetComponent<SpriteRenderer>().sprite = null;
@@ -586,6 +561,7 @@ public class CompletionMarksScript: MonoBehaviour {
 
 	void FindPower(){
 		int sum = 0; 
+		power = 0; 
 		string[] all = new string[chosenItems.Count]; 
 		for (int i = 0; i < chosenItems.Count; i++){
 			all[i] = Regex.Replace(chosenItems[i], @"[^a-zA-Z0-9]", "").ToLower(); 
@@ -817,7 +793,7 @@ public class CompletionMarksScript: MonoBehaviour {
 	}
 
 	void D4Press(){
-		if (chargeInd != 3 || moduleSolved){
+		if (chargeInd != 3 || moduleSolved){ 
 			return; 
 		}
 		Audio.PlaySoundAtTransform("d4", transform);
@@ -832,5 +808,173 @@ public class CompletionMarksScript: MonoBehaviour {
 	Vector3 Scale(double a){
 		float b = (float)a;
 		return new Vector3(b*sca.x, b*sca.y, sca.z); 
+	}
+
+	// Twitch Plays by ItsOlafDude
+
+#pragma warning disable 414
+	private readonly string TwitchHelpMessage = @"Type !{0} next/n to go to the next screen, !{0} reroll/d4 to use the d4, !{0} large/l or small/s to zoom in or out on Isaac, and !{0} mark/submit [boss1 boss2 boss3...] to input the corresponding mark(s) on the note.
+The list of acceptable boss names are as follows: beast, itlives/il/heart, isaac, satan, mother/knife, bluebaby/baby/bb/qqq, lamb, megasatan/mega/ms, delirium/deli, greedier/greed/ug, rush/br, hush.";
+#pragma warning restore 414
+
+	IEnumerator ProcessTwitchCommand(string command)
+	{
+		string[] split = command.ToLowerInvariant().Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
+
+		if (split.Length < 1){
+			yield return "sendtochaterror Not enough parameters in command.";
+			yield break;
+		}
+
+		int num = -1; 
+
+		if(new string[]{ "next", "n"}.Contains(split[0])){
+			if (split.Length > 1){
+				yield return "sendtochaterror Only include 1 parameter when switching screens.";
+				yield break;
+			}
+			yield return new WaitForSeconds(0.015f);
+			change.OnInteract();
+		}
+		else if (new string[]{ "reroll","d4"}.Contains(split[0])){
+			if (split.Length > 1){
+				yield return "sendtochaterror Only include 1 parameter when trying to use the D4.";
+				yield break;
+			}
+			if (viewInd != 0){
+				yield return "sendtochaterror You can only use the D4 on when on the 1st screen.";
+				yield break;
+			}
+			if (chargeInd != 3){
+				yield return "sendtochaterror The D4 doesn't have enough charges to be used yet. Solve more modules first!";
+				yield break;
+			}
+			yield return new WaitForSeconds(0.015f);
+			d4.OnInteract(); 
+		}
+		else if(new string[]{ "large","l" }.Contains(split[0])){
+			if (split.Length > 1){
+				yield return "sendtochaterror Only include 1 parameter when changing Isaac's sprite size.";
+				yield break;
+			}
+			if (viewInd != 1){
+				yield return "sendtochaterror You can only change Isaac's sprite size when on the 2nd screen.";
+				yield break;
+			}
+			yield return new WaitForSeconds(0.015f);
+			scaleBut[0].OnInteract(); 
+		}
+
+		else if(new string[]{ "small","s" }.Contains(split[0])){
+			if (split.Length > 1){
+				yield return "sendtochaterror Only include 1 parameter when changing Isaac's sprite size.";
+				yield break;
+			}
+			if (viewInd != 1){
+				yield return "sendtochaterror You can only change Isaac's sprite size when on the 2nd screen.";
+				yield break;
+			}
+			yield return new WaitForSeconds(0.015f);
+			scaleBut[1].OnInteract(); 
+		}
+
+		else if(new string[]{ "mark", "submit"}.Contains(split[0])){
+			if (viewInd != 2){
+				yield return "sendtochaterror You can only input marks when on the 3nd screen.";
+				yield break;
+			}
+			if (split.Distinct().Count() != split.Count()){
+					yield return "sendtochaterror There is a duplicate boss name in the command. Make sure they are unique!";
+					yield break;
+			}
+			for (int i = 1; i < split.Length; i++){
+				if (!new string[]{"beast","itlives","il","heart","isaac","satan","mother","knife","bluebaby","baby","bb","qqq","lamb","megasatan","mega","ms","delirium","deli","greedier","greed","ug","rush","br","hush"}.Contains(split[i])){
+					yield return "sendtochaterror Invalid boss name detected.";
+					yield break;
+				}
+			}
+			for (int i = 1; i < split.Length; i++){
+				yield return new WaitForSeconds(0.3f); 
+				switch (split[i]){
+					case "beast":
+						num = 0; 
+						break; 
+					case "itlives":
+					case "il":
+					case "heart":
+						num = 1; 
+						break; 
+					case "isaac":
+						num = 2; 
+						break;
+					case "satan":
+						num = 3; 
+						break;
+					case "mother":
+					case "knife":
+						num = 4; 
+						break;
+					case "bluebaby":
+					case "baby":
+					case "bb":
+					case "qqq": 
+						num = 5; 
+						break;
+					case "lamb":
+						num = 6; 
+						break;
+					case "megasatan":
+					case "mega":
+					case "ms": 
+						num = 7; 
+						break;
+					case "delirium":
+					case "deli":
+						num = 8; 
+						break;
+					case "greedier":
+					case "greed":
+					case "ug":
+						num = 11; 
+						break;
+					case "rush":
+					case "br":
+						num = 9;
+						break;
+					case "hush": 
+						num = 10; 
+						break;
+				}
+				if (selected[num]){
+					yield return "sendtochaterror You have already marked that boss.";
+					yield break;
+				}
+				if (corOrder[pressInd] != num){
+					yield return "strike";
+				}
+				else if (pressInd + 1 == corOrder.Length){
+					yield return "solve"; 
+				}
+				marks[num].OnInteract(); 
+			}
+		}
+		else{
+			yield return "sendtochaterror Command not recognized.";
+			yield break;
+		}
+	}
+
+	IEnumerator TwitchHandleForcedSolve()
+	{	
+		yield return new WaitForSeconds(0.015f);
+		yield return "solve";
+		while (!moduleSolved){   
+			while (viewInd != 2){
+				yield return new WaitForSeconds(0.2f);
+				change.OnInteract(); 
+			}
+			yield return new WaitForSeconds(0.3f);
+			marks[corOrder[pressInd]].OnInteract();
+		}
 	}
 }
